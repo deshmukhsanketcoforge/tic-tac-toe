@@ -56,3 +56,39 @@ def test_off_board_place_mark_is_rejected_with_board_unchanged(board, row, col):
 def test_off_board_cell_raises(board, row, col):
     with pytest.raises(ValueError, match="row and col must be between 0 and 2"):
         board.cell(row, col)
+
+def test_board_cell_is_empty_after_remove_mark(board):
+    assert board.place_mark(0, 0, MARK_X)
+
+    board.remove_mark(0, 0)
+
+    assert board.cell(0, 0) == EMPTY
+    assert (0, 0) in board.empty_cells()
+
+def test_remove_mark_only_clears_that_cell(board):
+    assert board.place_mark(0, 0, MARK_X)
+    assert board.place_mark(1, 1, MARK_O)
+
+    board.remove_mark(0, 0)
+
+    assert board.cell(1, 1) == MARK_O
+    assert (1, 1) not in board.empty_cells()
+
+def test_remove_cell_can_be_used_again(board):
+    assert board.place_mark(0, 0, MARK_X)
+    board.remove_mark(0, 0)
+
+    assert board.place_mark(0, 0, MARK_O)
+    assert board.cell(0, 0) == MARK_O
+
+def test_remove_mark_on_empty_cell_does_nothing(board):
+    before = board.empty_cells()
+
+    board.remove_mark(0, 0)
+
+    assert board.empty_cells() == before
+
+@pytest.mark.parametrize("row, col", OFF_BOARD)
+def test_off_board_remove_mark_raises(board, row, col):
+    with pytest.raises(ValueError, match="row and col must be between 0 and 2"):
+        board.remove_mark(row, col)
