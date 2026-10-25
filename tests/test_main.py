@@ -1,6 +1,7 @@
 import pytest
 
-from main import parse_move
+from main import parse_move, render_board
+from board import Board, MARK_O, MARK_X
 
 @pytest.mark.parametrize("text, expected", [
     ("1 1", (0, 0)),
@@ -20,3 +21,18 @@ def test_non_numeric_or_wrong_count_input_shows_a_clear_message(text):
 def test_out_of_range_input_shows_a_clear_message(text):
     with pytest.raises(ValueError, match="between 1 and 3"):
         parse_move(text, 3)
+
+def test_render_board_shows_every_cell_with_numbers_for_rows_and_columns():
+    board = Board()
+
+    assert board.place_mark(0, 0, MARK_X)
+    assert board.place_mark(0, 1, MARK_O)
+    assert board.place_mark(1, 1, MARK_X)
+
+    assert render_board(board) == "\n".join([
+        " X | O |",
+        "---+---+---",
+        "   | X |",
+        "---+---+---",
+        "   |   |"
+    ])
