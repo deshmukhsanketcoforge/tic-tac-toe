@@ -90,3 +90,10 @@ def test_no_moves_are_accepted_after_the_game_is_over(game):
     play(game, X_WINS_ROW)
 
     assert not game.take_turn(2, 2)
+
+def test_board_reflects_moves_made_through_the_game(game):
+    assert len(game.board.empty_cells())
+
+    play(game, [(0, 0)])
+
+    assert game.board.cell(0, 0) == MARK_X

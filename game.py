@@ -33,6 +33,11 @@ class Game:
         """Return True if the board is full and nobody has won."""
         return self._winner is None and self._board.is_full()
 
+    @property
+    def board(self) -> Board:
+        """Return the board. Callers must only read from it."""
+        return self._board
+
     def take_turn(self, row: int, col: int) -> bool:
         """Place the current player's mark at row, col (counting from 0).
 
