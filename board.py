@@ -16,3 +16,9 @@ class Board:
     @property
     def size(self):
         return self._size
+
+    def empty_cells(self):
+        """Return a list of (row, col) pairs for every empty cell."""
+        return [(r, c) for r in range(self._size) for c in range(self._size)
+                if self._grid[r][c] == EMPTY]
+    
