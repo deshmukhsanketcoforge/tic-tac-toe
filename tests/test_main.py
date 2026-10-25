@@ -16,7 +16,7 @@ def test_non_numeric_or_wrong_count_input_shows_a_clear_message(text):
     with pytest.raises(ValueError, match="two numbers"):
         parse_move(text, 3)
 
-@pytest.mark.parametrize("text", ["0 1", "1 0", "-1 1", "1 -1", "4, 1", "1, 4"])
+@pytest.mark.parametrize("text", ["0 1", "1 0", "-1 1", "1 -1", "4 1", "1 4"])
 def test_out_of_range_input_shows_a_clear_message(text):
     with pytest.raises(ValueError, match="between 1 and 3"):
         parse_move(text, 3)
