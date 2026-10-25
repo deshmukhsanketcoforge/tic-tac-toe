@@ -98,3 +98,7 @@ class Board:
             return True
 
         return False
+
+    def is_full(self) -> bool:
+        """Return True if no empty cell is left."""
+        return not self.empty_cells()

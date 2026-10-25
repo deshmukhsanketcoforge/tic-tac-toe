@@ -20,6 +20,32 @@ WINNING_LINES = [
     [(0, 2), (1, 1), (2, 0)]
 ]
 
+# --------- helpers ------------
+
+# X O X
+# X O X
+# O X O
+DRAW_LAYOUT = [
+    [MARK_X, MARK_O, MARK_X],
+    [MARK_X, MARK_O, MARK_X],
+    [MARK_O, MARK_X, MARK_O]
+]
+
+# X O X
+# O X O
+# O X X
+X_WINS_LAYOUT = [
+    [MARK_X, MARK_O, MARK_X],
+    [MARK_O, MARK_X, MARK_O],
+    [MARK_O, MARK_X, MARK_X]
+]
+
+def fill(board, layout):
+    """Place every week of layout (a list of rows) onto board."""
+    for r, row in enumerate(layout):
+        for c, mark in enumerate(row):
+            assert board.place_mark(r, c, mark)
+
 @pytest.fixture
 def board():
     """A fresh, empty 3x3 board for each test."""
@@ -143,3 +169,52 @@ def test_win_is_detected_on_every_line(board, seq, mark, other_mark):
 
     assert board.has_won(mark)
     assert not board.has_won(other_mark)
+
+def test_new_board_is_not_full(board):
+    assert not board.is_full()
+
+def test_partly_filled_board_is_not_full(board):
+    assert board.place_mark(0, 0, MARK_X)
+    assert board.place_mark(2, 2, MARK_O)
+    assert board.place_mark(0, 1, MARK_X)
+
+    assert not board.is_full()
+
+@pytest.mark.parametrize("mark", [MARK_O, MARK_X])
+def test_completely_filled_board_is_full(board, mark):
+    for row in range(board.size):
+        for col in range(board.size):
+            assert board.place_mark(row, col, mark)
+
+    assert board.is_full()
+
+def test_full_board_is_a_draw(board):
+    # constructing board
+    fill(board, DRAW_LAYOUT)
+
+    # board should be full
+    assert board.is_full()
+
+    # no winner
+    assert not board.has_won(MARK_X)
+    assert not board.has_won(MARK_O)
+
+def test_full_board_with_winner(board):
+    # constructing board
+    fill(board, X_WINS_LAYOUT)
+
+    # board should be full
+    assert board.is_full()
+
+    assert board.has_won(MARK_X)    # winner
+    assert not board.has_won(MARK_O)    # not winner
+
+def test_board_is_not_full_after_remove_mark(board):
+    # constructing board
+    fill(board, DRAW_LAYOUT)
+
+    # remove mark
+    board.remove_mark(1, 1)
+
+    # board should not be full
+    assert not board.is_full()
