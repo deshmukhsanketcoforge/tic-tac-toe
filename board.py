@@ -39,7 +39,10 @@ class Board:
             )
 
     def place_mark(self, row: int, col: int, mark: str) -> bool:
-        """Place mark at given row, col.
+        """Place mark at row, col (counting from 0).
+
+        Mark is set by the game, not typed by the player, so it is always
+        MARK_X or MARK_O.
 
         Return True if placed, False if the cell is taken or off the board.
         """
@@ -63,3 +66,35 @@ class Board:
         """
         self._check_in_range(row, col)
         self._grid[row][col] = EMPTY
+
+    def has_won(self, mark: str) -> bool:
+        """Return True if mark fills a whole row, column or diagonal.
+
+        mark must be MARK_X or MARK_O.
+        """
+
+        expected = [mark] * self._size
+
+        # check each row
+        if any(row == expected for row in self._grid):
+            return True
+
+        # check each column
+        for col in range(self._size):
+            curr = []
+            for row in range(self._size):
+                curr.append(self._grid[row][col])
+
+            if curr == expected:
+                return True
+
+        # top left to bottom right
+        if all(self._grid[idx][idx] == mark for idx in range(self._size)):
+            return True
+
+        # top right to bottom left
+        last = self._size - 1
+        if all(self._grid[idx][last - idx] == mark for idx in range(self._size)):
+            return True
+
+        return False

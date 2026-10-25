@@ -4,6 +4,21 @@ from board import Board
 from board import EMPTY, MARK_O, MARK_X
 
 OFF_BOARD = [(-1, -1), (-1, 2), (0, -1), (3, 2), (0, 3), (3, 6)]
+WINNING_LINES = [
+    # rows
+    [(0, 0), (0, 1), (0, 2)],
+    [(1, 0), (1, 1), (1, 2)],
+    [(2, 0), (2, 1), (2, 2)],
+
+    # cols
+    [(0, 0), (1, 0), (2, 0)],
+    [(0, 1), (1, 1), (2, 1)],
+    [(0, 2), (1, 2), (2, 2)],
+
+    # diagonals
+    [(0, 0), (1, 1), (2, 2)],
+    [(0, 2), (1, 1), (2, 0)]
+]
 
 @pytest.fixture
 def board():
@@ -92,3 +107,39 @@ def test_remove_mark_on_empty_cell_does_nothing(board):
 def test_off_board_remove_mark_raises(board, row, col):
     with pytest.raises(ValueError, match="row and col must be between 0 and 2"):
         board.remove_mark(row, col)
+
+def test_new_board_has_no_winner(board):
+    assert not board.has_won(MARK_X)
+    assert not board.has_won(MARK_O)
+
+def test_only_two_in_row_is_not_win(board):
+    assert board.place_mark(0, 0, MARK_X)
+    assert board.place_mark(1, 0, MARK_X)
+
+    assert not board.has_won(MARK_X)
+
+@pytest.mark.parametrize("mark, other_mark", [(MARK_O, MARK_X), (MARK_X, MARK_O)])
+def test_full_line_of_one_mark_does_not_count_for_another_mark(board, mark, other_mark):
+    assert board.place_mark(0, 0, mark)
+    assert board.place_mark(1, 0, mark)
+    assert board.place_mark(2, 0, mark)
+
+    assert not board.has_won(other_mark)
+    assert board.has_won(mark)
+
+def test_mixed_line_is_not_win(board):
+    assert board.place_mark(0, 0, MARK_X)
+    assert board.place_mark(1, 0, MARK_O)
+    assert board.place_mark(2, 0, MARK_X)
+
+    assert not board.has_won(MARK_X)
+    assert not board.has_won(MARK_O)
+
+@pytest.mark.parametrize("mark, other_mark", [(MARK_X, MARK_O), (MARK_O, MARK_X)])
+@pytest.mark.parametrize("seq", WINNING_LINES)
+def test_win_is_detected_on_every_line(board, seq, mark, other_mark):
+    for r, c in seq:
+        assert board.place_mark(r, c, mark)
+
+    assert board.has_won(mark)
+    assert not board.has_won(other_mark)
