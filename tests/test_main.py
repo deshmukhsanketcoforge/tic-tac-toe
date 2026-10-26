@@ -1,7 +1,21 @@
 import pytest
 
-from main import parse_move, render_board
+from main import parse_move, render_board, play_game
 from board import Board, MARK_O, MARK_X
+from game import Game
+
+X_WIN_INPUTS = ["1 1", "2 1", "1 2", "2 2", "1 3"]
+DRAW_INPUTS = ["1 1", "1 2", "1 3", "2 2", "2 1", "3 1", "2 3", "3 3", "3 2"]
+
+def run(inputs):
+    """Play one game with scripted inputs.
+    
+    Return the game and what was shown."""
+    lines = iter(inputs)
+    shown = []
+    game = Game()
+    play_game(game, read=lambda prompt: next(lines), write=shown.append)
+    return game, shown
 
 @pytest.mark.parametrize("text, expected", [
     ("1 1", (0, 0)),
@@ -36,3 +50,9 @@ def test_render_board_shows_every_cell_with_numbers_for_rows_and_columns():
         "---+---+---",
         "   |   |"
     ])
+
+def test_x_wins_and_the_winner_is_annouces():
+    game, shown = run(X_WIN_INPUTS)
+
+    assert game.winner == MARK_X
+    assert shown[-1] == "X wins!"

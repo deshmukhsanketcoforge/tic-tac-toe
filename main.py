@@ -7,6 +7,7 @@ If all cells are filled and no player has 3 marks in a row, the game ends in a d
 """
 
 from board import Board
+from game import Game
 
 NOT_NUMBERS = "Enter a row and a column as two numbers, like: 2 3"
 
@@ -45,3 +46,37 @@ def render_board(board: Board) -> str:
         lines.append(f"{cells}")
 
     return "\n".join(line.rstrip() for line in lines)
+
+def play_game(game: Game, read=input, write=print) -> None:
+    """Run game to the end, reading moves with read and 
+    showing moves with write.
+    """
+    while not game.is_over:
+        text = read(f"{game.current_player}'s move (row col): ")
+        try:
+            row, col = parse_move(text, game.board.size)
+        except ValueError as error:
+            # diplay the error, skip next part of code
+            # continue asking the input for same player
+            write(str(error))
+            continue
+
+        if not game.take_turn(row, col):
+            # invalid choice again, skip remining part of code
+            # continue asking for same player's input
+            write("That cell is already taken.")
+            continue
+
+        # display game state
+        write(render_board(game.board))
+
+    if game.winner:
+        write(f"{game.winner} wins!")
+    else:
+        write("It's a draw.")
+
+def main() -> None:
+    play_game(Game())
+
+if __name__ == "__main__":
+    main()
