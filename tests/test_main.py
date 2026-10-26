@@ -1,11 +1,15 @@
 import pytest
+import random
 
-from main import parse_move, render_board, play_game, NOT_NUMBERS
+from main import parse_move, render_board, play_game, NOT_NUMBERS, choose_opponent
 from board import Board, MARK_O, MARK_X
 from game import Game
+from ai import EasyAI, HardAI
 
 X_WIN_INPUTS = ["1 1", "2 1", "1 2", "2 2", "1 3"]
 DRAW_INPUTS = ["1 1", "1 2", "1 3", "2 2", "2 1", "3 1", "2 3", "3 3", "3 2"]
+
+# -------- helper functions --------
 
 def run(inputs):
     """Play one game with scripted inputs.
@@ -16,6 +20,20 @@ def run(inputs):
     game = Game()
     play_game(game, read=lambda prompt: next(lines), write=shown.append)
     return game, shown
+
+def ask(answers):
+    """Run choose_opponent with scripted answers. 
+    
+    Return the AI and the output.
+    """
+    lines = iter(answers)
+    shown = []
+    ai = choose_opponent(random.Random(0), read= lambda p: next(lines), 
+                         write=shown.append)
+    return ai, shown
+
+
+# -------- helper functions ------------
 
 @pytest.mark.parametrize("text, expected", [
     ("1 1", (0, 0)),
@@ -80,3 +98,25 @@ def test_taken_cell_shows_a_message_and_keeps_the_turn():
 
     assert "That cell is already taken." in shown
     assert game.winner == MARK_X    # duplicate (1, 1) move not considered valid and turn kept
+
+def test_two_players_mode_has_no_ai():
+    ai, _ = ask(["1"])
+
+    assert ai is None
+
+@pytest.mark.parametrize("answers, ai_class", [
+    (["2", "1"], EasyAI),
+    (["2", "2"], HardAI),
+])
+def test_versus_computer_mode_uses_the_chosen_level(answers, ai_class):
+    ai, _ = ask(answers)
+
+    assert isinstance(ai, ai_class)
+
+def test_invalid_menu_input_asks_again():
+    ai, shown = ask([
+        "a", "0", "2", "", "10", "1"
+    ])
+
+    assert isinstance(ai, EasyAI)
+    assert len(shown) == 4      # one message per invalid answer
