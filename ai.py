@@ -20,3 +20,9 @@ class AIPlayer(ABC):
 
         The board must have an empty cell, and is left unchanged.
         """
+
+class EasyAI(AIPlayer):
+    """Plays a random empty cell."""
+
+    def choose_move(self, board: Board, mark: str) -> tuple[int, int]:
+        return self._rng.choice(board.empty_cells())
