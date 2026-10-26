@@ -1,6 +1,6 @@
 import pytest
 
-from main import parse_move, render_board, play_game
+from main import parse_move, render_board, play_game, NOT_NUMBERS
 from board import Board, MARK_O, MARK_X
 from game import Game
 
@@ -56,3 +56,27 @@ def test_x_wins_and_the_winner_is_annouces():
 
     assert game.winner == MARK_X
     assert shown[-1] == "X wins!"
+
+def test_full_board_without_a_winner_is_announced_as_a_draw():
+    game, shown = run(DRAW_INPUTS)
+
+    assert game.is_draw
+    assert shown[-1] == "It's a draw."
+
+def test_board_is_shown_at_the_start_and_after_every_move():
+    _, shown = run(X_WIN_INPUTS)
+
+    boards = [text for text in shown if text.startswith(" ")]
+    assert len(boards) == len(X_WIN_INPUTS)
+
+def test_non_numeric_input_shows_a_message_and_keeps_the_turn():
+    game, shown = run(["a b"] + X_WIN_INPUTS)
+
+    assert NOT_NUMBERS in shown
+    assert game.winner == MARK_X        # X still got the first move
+
+def test_taken_cell_shows_a_message_and_keeps_the_turn():
+    game, shown = run(["1 1", "1 1", "2 1", " 1 2", "2 2", "1 3"])
+
+    assert "That cell is already taken." in shown
+    assert game.winner == MARK_X    # duplicate (1, 1) move not considered valid and turn kept
