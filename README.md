@@ -15,6 +15,17 @@ Examples of invalid input:
 6. Input with numbers beyond range (1, size)
 7. Input with a cell already taken
 
+## Game modes
+
+At the start the game asks for a mode:
+
+1. **Two players**: X and O take turns on the same terminal.
+2. **Versus computer**: you play X and the computer plays O. Then choose the difficulty:
+   1. **Easy**: the computer picks a random empty cell.
+   2. **Hard**: the computer uses the minimax algorithm and never loses when it plays second.
+
+An invalid menu answer is rejected and the question is asked again.
+
 ## Project structure
 
 ```
@@ -23,12 +34,14 @@ tic-tac-toe/
 │   └── workflows/
 │       └── ci.yml          # runs pytest on pull requests and on main
 ├── tests/
+│   ├── test_ai.py          # AI players: seeded Easy, Hard minimax
 │   ├── test_board.py       # Board rules: marks, off-board, win, draw
 │   ├── test_game.py        # turn order, win and draw detection
-│   └── test_main.py        # move parsing, board rendering, game loop
+│   └── test_main.py        # move parsing, board rendering, menu, game loop
+├── ai.py                   # AIPlayer base class, EasyAI and HardAI
 ├── board.py                # Board class (3x3 grid, marks, win and full checks)
 ├── game.py                 # Game class (turns, winner, draw)
-├── main.py                 # the only file that prints and reads input
+├── main.py                 # menu, prompts and display (the only file that prints and reads input)
 ├── conftest.py             # lets pytest import the modules from the root
 ├── requirements.txt        # pinned packages (pytest)
 ├── PLAN.md                 # plan: goal, requirements, components, decisions
@@ -58,7 +71,8 @@ Python 3.10 or later.
 python main.py
 ```
 
-Enter a move as a row and a column, counting from 1, for example `2 3`
+Choose the game mode (and the difficulty, if you play the computer), then
+enter a move as a row and a column, counting from 1, for example `2 3`
 (second row, third column). X goes first.
 
 ## How to run the tests

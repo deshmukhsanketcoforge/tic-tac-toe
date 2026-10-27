@@ -43,3 +43,19 @@
 |---|---------|----------|--------|
 | 1 | Declare draw when we can't achieve any win state from current board state OR let the players play entire game |Play full game even if draw is guaranteed | To determine draw, we need to consider all possible future board state, to see if any win state is possible, which is time consuming. Instead we can just let the user play full game and after each move, call has_won(mark), which only checks the 8 lines (3 rows, 3 columns, 2 diagonals) |
 | 2 | HardAI uses predefined state mapping to guarantee a win or hardAI explore future possible states based on current choice and picks the best one | Hard AI, explores all possible future states, to determine which move will lead to win of AI, then picks the move which could lead to win | Hard AI should not lose, so it can't just randomly pick any cell, it should explore future possibilities to determine current move. A predefined mapping of board states would have to be written and checked by hand and takes more space, while exploring future states works for any position and is what the spec asks for (minimax) |
+
+## What changed
+
+Changes from the plan while building, and why.
+
+1. **Board got a `size` property and a `cell()` method.** Reading the size from the board is better than hardcoding 3 everywhere in the code. If the board ever scales, updating and testing every place would be technical debt. So req 1 is also verified through `size` and `empty_cells()`.
+2. **Type hints on all methods.** It is easier to catch a bug when a method is called than somewhere in the middle of processing the information.
+3. **`_check_in_range` helper.** The out-of-range error handling (`cell` and `remove_mark` raise `ValueError`) lives in one place. `place_mark` still returns False, as the spec says. `remove_mark` returns nothing.
+4. **No marker validation.** Marks are decided internally by the game, never typed by the player, so `place_mark` does not validate them and there is no test for it. Marks are constants (`MARK_X`, `MARK_O`, `EMPTY`).
+5. **Test helpers to fill the board** (`fill`, the winning and draw layouts), because many tests need the same board setups.
+6. **Game stores the current mark (not 1 or 2).** There is no number-to-mark mapping to repeat, and `main.py` can show whose turn it is directly.
+7. **After a winning move the turn does not switch.** `current_player` stays on the winner, and `winner`, `is_draw` and `is_over` tell `main.py` how the game ended. Moves after the game ends are rejected.
+8. **`game.py` does not do mode setup.** The plan's Components row 4 said it would. Instead the loop in `main.py` asks the AI for its move and applies it with `take_turn`, so `Game` knows nothing about AIs.
+9. **`play_game` takes `read` and `write`** (defaulting to `input` and `print`), so the game loop is tested with scripted input without a terminal. `parse_move` raises `ValueError` with the message for the player.
+10. **HardAI scores quicker wins higher**, so it always takes an immediate win. The injected `random.Random` is used only to choose between equally good moves, which keeps it seedable. The `AIPlayer` base class holds the `rng`.
+11. **Starting board is shown before the first move** (the board is still shown after every move).
