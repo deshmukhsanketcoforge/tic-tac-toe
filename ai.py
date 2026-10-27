@@ -1,5 +1,5 @@
 """
-AI module: compugter players. Each one is asked a move through 
+AI module: computer players. Each one is asked a move through
 choose_move, so the game never needs to know which level it is playing.
 """
 
@@ -28,11 +28,11 @@ class EasyAI(AIPlayer):
         return self._rng.choice(board.empty_cells())
 
 class HardAI(AIPlayer):
-    """Plays best move find by minimax, so it never loses."""
+    """Plays best move found by minimax, so it never loses."""
 
     def _score(self, board: Board, me: str, opponent: str, to_move: str, depth: int) -> int:
-        """Score the board for me, assuming both sidesplay their best.
-        
+        """Score the board for me, assuming both sides play their best.
+
         A quicker win scores higher and a quicker loss scores lower.
         """
 
@@ -56,8 +56,8 @@ class HardAI(AIPlayer):
             board.remove_mark(row, col)
 
         return max(scores) if to_move == me else min(scores)
-    
-    def choose_move(self, board: Board, mark: str):
+
+    def choose_move(self, board: Board, mark: str) -> tuple[int, int]:
         opponent = MARK_O if mark == MARK_X else MARK_X
 
         best_score = None

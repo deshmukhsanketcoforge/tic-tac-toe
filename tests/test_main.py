@@ -4,7 +4,7 @@ import random
 from main import parse_move, render_board, play_game, NOT_NUMBERS, choose_opponent
 from board import Board, MARK_O, MARK_X
 from game import Game
-from ai import EasyAI, HardAI
+from ai import EasyAI, HardAI, AIPlayer
 
 X_WIN_INPUTS = ["1 1", "2 1", "1 2", "2 2", "1 3"]
 DRAW_INPUTS = ["1 1", "1 2", "1 3", "2 2", "2 1", "3 1", "2 3", "3 3", "3 2"]
@@ -13,7 +13,7 @@ DRAW_INPUTS = ["1 1", "1 2", "1 3", "2 2", "2 1", "3 1", "2 3", "3 3", "3 2"]
 
 def run(inputs):
     """Play one game with scripted inputs.
-    
+
     Return the game and what was shown."""
     lines = iter(inputs)
     shown = []
@@ -22,16 +22,25 @@ def run(inputs):
     return game, shown
 
 def ask(answers):
-    """Run choose_opponent with scripted answers. 
-    
+    """Run choose_opponent with scripted answers.
+
     Return the AI and the output.
     """
     lines = iter(answers)
     shown = []
-    ai = choose_opponent(random.Random(0), read= lambda p: next(lines), 
+    ai = choose_opponent(random.Random(0), read=lambda p: next(lines),
                          write=shown.append)
     return ai, shown
 
+class ScriptedAI(AIPlayer):
+    """Plays the given (row, col) moves in order."""
+
+    def __init__(self, moves):
+        super().__init__(random.Random(0))
+        self._moves = iter(moves)
+
+    def choose_move(self, board, mark):
+        return next(self._moves)
 
 # -------- helper functions ------------
 
@@ -69,7 +78,7 @@ def test_render_board_shows_every_cell_with_numbers_for_rows_and_columns():
         "   |   |"
     ])
 
-def test_x_wins_and_the_winner_is_annouces():
+def test_x_wins_and_the_winner_is_announces():
     game, shown = run(X_WIN_INPUTS)
 
     assert game.winner == MARK_X
@@ -85,7 +94,7 @@ def test_board_is_shown_at_the_start_and_after_every_move():
     _, shown = run(X_WIN_INPUTS)
 
     boards = [text for text in shown if text.startswith(" ")]
-    assert len(boards) == len(X_WIN_INPUTS)
+    assert len(boards) == 1 + len(X_WIN_INPUTS)
 
 def test_non_numeric_input_shows_a_message_and_keeps_the_turn():
     game, shown = run(["a b"] + X_WIN_INPUTS)
@@ -120,3 +129,50 @@ def test_invalid_menu_input_asks_again():
 
     assert isinstance(ai, EasyAI)
     assert len(shown) == 4      # one message per invalid answer
+
+def test_human_plays_x_and_computer_plays_o():
+    # user input is 1-based index
+    inputs = iter(["1 1", "1 2", "1 3"])
+    shown = []
+
+    game = Game()
+
+    ai = ScriptedAI([(1, 0), (1, 1)])
+
+    play_game(game, read=lambda p: next(inputs), write=shown.append, ai=ai)
+
+    assert game.board.cell(1, 0) == MARK_O
+    assert game.board.cell(1, 1) == MARK_O
+    assert game.winner == MARK_X
+
+    assert "Computer plays 2 1" in shown
+
+def test_human_is_never_asked_for_the_computers_turn():
+    prompts = []
+    inputs = iter(["1 1", "1 2", "1 3"])
+
+    def read(prompt):
+        prompts.append(prompt)
+        return next(inputs)
+
+    play_game(Game(), read=read, write=lambda text: None, ai=ScriptedAI([(1, 0), (1, 1)]))
+
+    assert len(prompts) == 3
+    assert all(prompt.startswith(MARK_X) for prompt in prompts)
+
+def test_menu_answer_with_spaces_is_accepted():
+    ai, _ = ask(["  1  "])
+
+    assert ai is None
+
+def test_computer_on_hard_never_lets_human_win():
+    game = Game()
+
+    def first_empty_cell(prompt):
+        row, col = game.board.empty_cells()[0]
+        return f"{row + 1} {col + 1}"
+
+    play_game(game, read=first_empty_cell, write=lambda text: None,
+              ai=HardAI(random.Random(0)))
+
+    assert game.winner != MARK_X

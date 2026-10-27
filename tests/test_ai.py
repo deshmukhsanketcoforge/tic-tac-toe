@@ -22,7 +22,7 @@ def play_every_x_move(board, ai):
     Return the number of finished games. Fail if X ever wins.
     """
     games = 0
-    
+
     for row, col in board.empty_cells():
         assert board.place_mark(row, col, MARK_X)
         assert not board.has_won(MARK_X)
@@ -48,8 +48,9 @@ def test_abstract_ai_cannot_be_created():
     with pytest.raises(TypeError):
         AIPlayer(rng())
 
-def test_easy_is_an_ai_player():
-    assert isinstance(EasyAI(rng()), AIPlayer)
+@pytest.mark.parametrize("ai_class", [EasyAI, HardAI])
+def test_ai_levels_are_ai_players(ai_class):
+    assert isinstance(ai_class(rng()), AIPlayer)
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_easy_always_returns_an_empty_cell(seed):
@@ -132,3 +133,9 @@ def test_hard_never_loses_when_it_plays_second():
     games = play_every_x_move(Board(), HardAI(rng()))
 
     assert games > 0
+
+def test_easy_with_the_same_seed_picks_the_same_cell():
+    first = EasyAI(rng(7)).choose_move(Board(), MARK_X)
+    second = EasyAI(rng(7)).choose_move(Board(), MARK_X)
+
+    assert first == second
